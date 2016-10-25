@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding=utf8
 import sys
+import os
 import time
 import pymongo
 from selenium import webdriver
@@ -37,20 +38,13 @@ class UserObject:
         return obj
 
 
-connection = None
-db = None
-collection = None
+connection = pymongo.MongoClient("localhost", 27017)
+db = connection.people
+collection = db.peopleList
 
-def connectDB():
-    connection = pymongo.MongoClient("localhost", 27017)
-    db = connection.people
-    collection  = db.peopleList
+def parsePerPage(driver):
 
-def searchList(driver):
-
-    resultList = []
-
-    while 1:
+    try:
 
         img_listarea = driver.find_element_by_css_selector('ul.img_listarea')
 
@@ -70,10 +64,21 @@ def searchList(driver):
             job = jobEle.replace("[現]","").replace("[前]","")
 
             print(name+","+birthEle+","+job)
-
             userObj.setItem(name,birthEle,job)
             collection.insert(userObj.getJSONObject())
             #resultList.append(userObj.getJSONObject())
+
+    except StaleElementReferenceException:
+        time.sleep(3)
+        parsePerPage(driver)
+
+def searchList(driver):
+
+    resultList = []
+
+    while 1:
+
+        parsePerPage(driver)
 
         nextBtn = driver.find_element_by_css_selector('#pager > a.next')
 
@@ -83,9 +88,9 @@ def searchList(driver):
             nextBtn.click()
 
 keyItems = [u'가수',u'영화배우',u'국회의원',u'방송인']
-driver = webdriver.Chrome('/Users/Elenore/Documents/Develop/PeopleCrawler/mac/chromedriver')  # Optional argument, if not specified will search path.
-
-connectDB()
+chromedriver = "/usr/lib/chromium-browser/chromedriver"
+os.environ["webdriver.chrome.driver"] = chromedriver
+driver = webdriver.Chrome(chromedriver)
 
 for key in keyItems :
 
