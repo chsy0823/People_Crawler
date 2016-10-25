@@ -5,6 +5,7 @@ import os
 import time
 import pymongo
 from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException, NoSuchWindowException
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -42,6 +43,15 @@ connection = pymongo.MongoClient("localhost", 27017)
 db = connection.people
 collection = db.peopleList
 
+def checkDuplicatedItem(connection, userObj):
+
+    result = collection.find({"name":userObj.getName(), "birth":userObj.getBirth()})
+
+    if result.count() > 0 :
+        return True
+
+    return False
+
 def parsePerPage(driver):
 
     try:
@@ -65,7 +75,9 @@ def parsePerPage(driver):
 
             print(name+","+birthEle+","+job)
             userObj.setItem(name,birthEle,job)
-            collection.insert(userObj.getJSONObject())
+
+            if checkDuplicatedItem(connection, userObj) == False :
+                collection.insert(userObj.getJSONObject())
             #resultList.append(userObj.getJSONObject())
 
     except StaleElementReferenceException:
@@ -80,14 +92,16 @@ def searchList(driver):
 
         parsePerPage(driver)
 
-        nextBtn = driver.find_element_by_css_selector('#pager > a.next')
-
-        if nextBtn == None:
-            break
-        else:
+        try:
+            nextBtn = driver.find_element_by_css_selector('#pager > a.next')
             nextBtn.click()
 
-keyItems = [u'가수',u'영화배우',u'국회의원',u'방송인']
+        except NoSuchElementException:
+            break
+
+
+keyItems = [u'탤런트',u'가수',u'영화배우',u'국회의원',u'방송인']
+#keyItems = [u'탤런트']
 chromedriver = "/usr/lib/chromium-browser/chromedriver"
 os.environ["webdriver.chrome.driver"] = chromedriver
 driver = webdriver.Chrome(chromedriver)
