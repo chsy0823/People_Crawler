@@ -100,8 +100,8 @@ def searchList(driver):
             break
 
 
-keyItems = [u'탤런트',u'가수',u'영화배우',u'국회의원',u'방송인']
-#keyItems = [u'탤런트']
+#keyItems = [u'탤런트',u'가수',u'영화배우',u'국회의원',u'방송인']
+keyItems = [u'축구선수',u'배구선수',u'야구선수',u'음악',u'스포츠',u'스케이트선수'u'감독',u'목사'u'종교인',u'미술'u'언론인',u'기업인'u'뮤지컬배우',u'교수']
 chromedriver = "/usr/lib/chromium-browser/chromedriver"
 os.environ["webdriver.chrome.driver"] = chromedriver
 driver = webdriver.Chrome(chromedriver)
